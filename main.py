@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 def calculate_frequencies(data):
     return Counter(data)
 
+
 def build_huffman_tree(frequencies):
     heap = [[freq, [char, ""]] for char, freq in frequencies.items()]
     heapq.heapify(heap)
