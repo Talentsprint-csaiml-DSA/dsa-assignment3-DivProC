@@ -1,51 +1,30 @@
 import heapq
-from collections import Counter
-
-class HuffmanNode:
-    def __init__(self, char=None, freq=0):
-        self.char = char
-        self.freq = freq
-        self.left = None
-        self.right = None
-
-    def __lt__(self, other):
-        return self.freq < other.freq
+from collections import Counter, defaultdict
 
 def calculate_frequencies(data):
     return Counter(data)
 
 def build_huffman_tree(frequencies):
-    priority_queue = [HuffmanNode(char, freq) for char, freq in frequencies.items()]
-    heapq.heapify(priority_queue)
+    heap = [[freq, [char, ""]] for char, freq in frequencies.items()]
+    heapq.heapify(heap)
+    
+    while len(heap) > 1:
+        lo = heapq.heappop(heap)
+        hi = heapq.heappop(heap)
+        for pair in lo[1:]:
+            pair[1] = '0' + pair[1]
+        for pair in hi[1:]:
+            pair[1] = '1' + pair[1]
+        heapq.heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
+    
+    return sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
 
-    while len(priority_queue) > 1:
-        left = heapq.heappop(priority_queue)
-        right = heapq.heappop(priority_queue)
-        merged = HuffmanNode(freq=left.freq + right.freq)
-        merged.left = left
-        merged.right = right
-        heapq.heappush(priority_queue, merged)
+def generate_huffman_codes(huffman_tree):
+    return {char: code for char, code in huffman_tree}
 
-    return priority_queue[0]
-
-def generate_huffman_codes(node, prefix='', codes=None):
-    if codes is None:
-        codes = {}
-
-    if node.char is not None:
-        codes[node.char] = prefix
-    else:
-        generate_huffman_codes(node.left, prefix + '0', codes)
-        generate_huffman_codes(node.right, prefix + '1', codes)
-
-    return codes
-
-def huffman_encode(data):
-    frequencies = calculate_frequencies(data)
-    root = build_huffman_tree(frequencies)
-    codes = generate_huffman_codes(root)
-    encoded_data = ''.join(codes[char] for char in data)
-    return encoded_data, codes
 def huffman_coding(data):
-    return huffman_encode(data)[0]
-
+    frequencies = calculate_frequencies(data)
+    huffman_tree = build_huffman_tree(frequencies)
+    codes = generate_huffman_codes(huffman_tree)
+    encoded_data = ''.join(codes[char] for char in data)
+    return encoded_data
